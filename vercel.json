@@ -1,22 +1,3 @@
 {
-  "builds": [
-    {
-      "src": "backend/public/**/*",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "backend/api/**/*.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "backend/api/index.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "backend/public/$1"
-    }
-  ]
+  "public": "backend/public"
 }
