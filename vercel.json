@@ -1,14 +1,22 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "backend/public",
-  "rewrites": [
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "src": "backend/public/**/*",
+      "use": "@vercel/static"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "backend/api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "backend/public/$1"
     }
   ]
 }
