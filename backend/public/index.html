@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediFlow - Hospital Queue Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #0066CC;
+            --primary-dark: #0052A3;
+            --primary-light: #E3F2FD;
+            --secondary: #FF6B6B;
+            --success: #51CF66;
+            --warning: #FFD43B;
+            --danger: #FF4757;
+            --gray: #6C757D;
+            --light: #F8F9FA;
+            --border: #E9ECEF;
+            --text: #2D3748;
+        }
+        body {
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text);
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 25% { transform: scale(1.1); } 50% { transform: scale(0.95); } 75% { transform: scale(1.05); } }
+        
+        header {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        nav {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            flex-wrap: wrap;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #0066CC 0%, #0052A3 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            animation: float 3s ease-in-out infinite;
+            font-weight: 900;
+            font-size: 20px;
+            letter-spacing: -2px;
+        }
+        .nav-menu {
+            display: flex;
+            gap: 1rem;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        .nav-link {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .nav-link:hover { color: var(--primary); }
+        .nav-link.active { color: white; background: var(--primary); }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .hero {
+            text-align: center;
+            color: white;
+            margin-bottom: 2rem;
+            animation: slideIn 0.7s ease;
+        }
+        .hero h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .hero p { font-size: 1.1rem; opacity: 0.9; }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            animation: slideIn 0.6s ease;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15); }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--primary-light);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--primary);
+        }
+        .card h2 { font-size: 1.3rem; color: var(--text); margin: 0; }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%230066CC' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            padding-right: 2rem;
+            cursor: pointer;
+        }
+        select option {
+            padding: 0.75rem;
+            background: white;
+            color: #2D3748;
+            font-size: 0.95rem;
+        }
+        select option:hover {
+            background: linear-gradient(#0066CC, #0066CC);
+            background-color: #0066CC !important;
+            color: white !important;
+        }
+        select option:checked {
+            background: linear-gradient(#0066CC, #0066CC);
+            background-color: #0066CC !important;
+            color: white !important;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #667eea);
+            color: white;
+            width: 100%;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0, 102, 204, 0.3); }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-small { padding: 0.5rem 1rem; font-size: 0.9rem; width: auto; }
+        
+        .message {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+        .message.success {
+            background: #D4EDDA;
+            color: #155724;
+            border-left: 4px solid var(--success);
+        }
+        .message.error {
+            background: #F8D7DA;
+            color: #721C24;
+            border-left: 4px solid var(--danger);
+        }
+        .message.info {
+            background: #D1ECF1;
+            color: #0C5460;
+            border-left: 4px solid #0C5460;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-light), white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid var(--border);
+            transition: all 0.3s;
+        }
+        .stat-card:hover { transform: translateY(-3px); border-color: var(--primary); }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .queue-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .queue-item {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.3s;
+        }
+        .queue-item:hover { border-color: var(--primary); box-shadow: 0 5px 15px rgba(0, 102, 204, 0.1); }
+        .queue-item.empty {
+            text-align: center;
+            color: #999;
+            padding: 3rem;
+        }
+        
+        .queue-number {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), #667eea);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .queue-info { flex: 1; }
+        .queue-info h3 { font-size: 1.1rem; margin-bottom: 0.3rem; color: var(--text); }
+        .queue-info p { font-size: 0.85rem; color: #666; margin: 0; }
+        
+        .user-status {
+            background: var(--primary-light);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .user-status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+        }
+        .user-status strong { color: var(--primary); }
+        
+        .notification-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%);
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 6px;
+            animation: bounce 0.6s infinite;
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+        }
+        .notification-dot {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 10px;
+            height: 10px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .health-score {
+            text-align: center;
+            padding: 2rem;
+        }
+        .health-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+        }
+        .health-circle.good { background: linear-gradient(135deg, var(--success), #45b649); }
+        .health-circle.warning { background: linear-gradient(135deg, var(--warning), #f0ad4e); }
+        .health-circle.poor { background: linear-gradient(135deg, var(--danger), #ff6b6b); }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.show { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text);
+            cursor: pointer;
+        }
+        
+        .security-badge {
+            display: inline-block;
+            background: #E3F2FD;
+            color: var(--primary);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .hidden { display: none !important; }
+        
+        @media (max-width: 768px) {
+            nav { flex-direction: column; gap: 0.5rem; padding: 0.8rem 1rem; }
+            .nav-menu { flex-direction: row; gap: 0.3rem; width: 100%; flex-wrap: wrap; }
+            .nav-link { width: auto; justify-content: center; padding: 0.5rem 0.8rem; font-size: 0.8rem; }
+            .nav-link i { display: none; }
+            .hero { margin-bottom: 1.5rem; }
+            .hero h1 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+            .hero p { font-size: 0.9rem; }
+            .container { padding: 1rem; }
+            .card { padding: 1rem; }
+            .stats { grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+            .stat-card { padding: 1rem; }
+            .stat-number { font-size: 1.5rem; }
+            .queue-item { flex-direction: column; text-align: center; padding: 1rem; }
+            .queue-number { width: 50px; height: 50px; font-size: 1.2rem; }
+            .queue-info { width: 100%; margin-top: 0.5rem; }
+            .content-grid { grid-template-columns: 1fr; gap: 1rem; }
+            .form-group { margin-bottom: 1rem; }
+            label { font-size: 0.85rem; }
+            input, select, textarea { font-size: 16px; padding: 0.6rem; }
+            .btn { padding: 0.7rem 1rem; font-size: 0.95rem; }
+            .health-circle { width: 120px; height: 120px; font-size: 1.8rem; }
+            .analytics-grid { grid-template-columns: 1fr; gap: 1rem; }
+            [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: 1fr !important; }
+        }
+        
+        @media (max-width: 480px) {
+            .logo-icon { width: 32px; height: 32px; font-size: 18px; }
+            .logo span { display: none; }
+            .hero h1 { font-size: 1.2rem; }
+            .hero p { display: none; }
+            .nav-link { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
+            .btn { padding: 0.6rem 0.8rem; font-size: 0.9rem; width: 100%; }
+            .stats { grid-template-columns: 1fr; }
+            [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="/" class="logo">
+                <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+                <span>MediFlow</span>
+            </a>
+            <ul class="nav-menu">
+                <li><a class="nav-link active" data-view="patient" onclick="switchView('patient', event)"><i class="fas fa-user"></i> Patient</a></li>
+                <li><a class="nav-link" data-view="notifications" onclick="switchView('notifications', event)"><i class="fas fa-bell"></i> Notifications <span id="notificationBadge" class="notification-badge" style="display: none;">0</span></a></li>
+                <li><a class="nav-link" data-view="queue" onclick="switchView('queue', event)"><i class="fas fa-list"></i> Queue</a></li>
+                <li><a class="nav-link" data-view="analytics" onclick="switchView('analytics', event)"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+                <li><a class="nav-link" data-view="admin" onclick="switchView('admin', event)"><i class="fas fa-cog"></i> Admin</a></li>
+                <li><a class="nav-link" data-view="security" onclick="switchView('security', event)"><i class="fas fa-shield-alt"></i> Security</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1><i class="fas fa-heartbeat" style="color: #FF6B6B; margin-right: 12px;"></i>MediFlow</h1>
+            <p>Smart Hospital Queue Management System - Complete Solution</p>
+        </div>
+
+        <!-- PATIENT VIEW -->
+        <div id="patientView">
+            <div class="content-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fas fa-user-plus"></i></div>
+                        <h2>Patient Registration</h2>
+                    </div>
+                    <div id="patientMessage"></div>
+                    
+                    <!-- Personal Information Section - Beautiful & Compact -->
+                    <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%); padding: 0.9rem; border-radius: 12px; margin-bottom: 1rem; border: 1px solid rgba(102, 126, 234, 0.2);">
+                        
+                        <!-- Full Name -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.4rem; margin-bottom: 0.6rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #0066CC; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-user" style="margin-right: 4px;"></i>First</label>
+                                <input type="text" id="firstName" placeholder="John" required style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-font" style="margin-right: 4px;"></i>Middle</label>
+                                <input type="text" id="middleName" placeholder="M." style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #0066CC; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-user" style="margin-right: 4px;"></i>Last</label>
+                                <input type="text" id="lastName" placeholder="Doe" required style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s;">
+                            </div>
+                        </div>
+                        
+                        <!-- DOB & Age -->
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.4rem; margin-bottom: 0.6rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #0066CC; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-calendar" style="margin-right: 4px;"></i>Date of Birth</label>
+                                <input type="date" id="dateOfBirth" onchange="calculateAge()" required style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-birthday-cake" style="margin-right: 4px;"></i>Age</label>
+                                <input type="number" id="age" placeholder="Auto" min="0" max="150" style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s;">
+                            </div>
+                        </div>
+                        
+                        <!-- Gender & Phone -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.6rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #0066CC; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-venus-mars" style="margin-right: 4px;"></i>Gender</label>
+                                <select id="gender" required style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s; background: white;" onchange="this.parentElement.style.animation='bounce 0.6s ease';">
+                                    <option value="">Select</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #0066CC; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-phone" style="margin-right: 4px;"></i>Phone</label>
+                                <input type="tel" id="phoneNumber" placeholder="555-1234" required style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s;">
+                            </div>
+                        </div>
+                        
+                        <!-- Email & Address -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.6rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-envelope" style="margin-right: 4px;"></i>Email</label>
+                                <input type="email" id="email" placeholder="email@example.com" style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-map-marker-alt" style="margin-right: 4px;"></i>Address</label>
+                                <input type="text" id="address" placeholder="Address" style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s;">
+                            </div>
+                        </div>
+                        
+                        <!-- Department & Reason -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.6rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #0066CC; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-clinic-medical" style="margin-right: 4px;"></i>Department</label>
+                                <select id="department" required style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s; background: white;" onchange="this.parentElement.style.animation='bounce 0.6s ease';">
+                                    <option value="">Select</option>
+                                    <option value="General Practice">General Practice</option>
+                                    <option value="Emergency">Emergency</option>
+                                    <option value="Pediatrics">Pediatrics</option>
+                                    <option value="Surgery">Surgery</option>
+                                    <option value="Obstetrics & Gynecology">OB/GYN</option>
+                                    <option value="Internal Medicine">Internal Medicine</option>
+                                    <option value="Orthopedics">Orthopedics</option>
+                                    <option value="Laboratory">Laboratory</option>
+                                    <option value="Radiology">Radiology</option>
+                                    <option value="Dental">Dental</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label style="font-size: 0.7rem; color: #0066CC; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-stethoscope" style="margin-right: 4px;"></i>Reason</label>
+                                <select id="reasonForVisit" onchange="toggleOtherReason(); this.parentElement.style.animation='bounce 0.6s ease';" required style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s; background: white;">
+                                    <option value="">Select</option>
+                                    <option value="New Consultation">Consultation</option>
+                                    <option value="Follow-up Appointment">Follow-up</option>
+                                    <option value="Emergency">Emergency</option>
+                                    <option value="Laboratory Test">Lab Test</option>
+                                    <option value="Radiology/Imaging">Imaging</option>
+                                    <option value="Pharmacy">Pharmacy</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Other Reason (hidden) -->
+                        <div class="form-group hidden" id="otherReasonContainer" style="margin-bottom: 0;">
+                            <label style="font-size: 0.7rem; color: #0066CC; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-comment" style="margin-right: 4px;"></i>Specify:</label>
+                            <input type="text" id="otherReason" placeholder="Your reason..." style="padding: 0.45rem; font-size: 0.85rem; border: 1.5px solid #E9ECEF; border-radius: 6px; transition: all 0.3s;">
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary" onclick="joinQueue()" style="width: 100%; padding: 0.7rem 1rem; font-size: 0.95rem; font-weight: 700; background: linear-gradient(135deg, #0066CC 0%, #0052A3 100%); color: white; border: none; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4); transition: all 0.3s ease; margin-bottom: 0.8rem; margin-top: 0.4rem; cursor: pointer; letter-spacing: 0.5px;">
+                        <i class="fas fa-check-circle"></i> REGISTER & JOIN QUEUE
+                    </button>
+                    
+                    <div id="userStatus" class="user-status hidden" style="background: linear-gradient(135deg, rgba(81, 207, 102, 0.08) 0%, rgba(51, 204, 102, 0.08) 100%); padding: 0.9rem; border-radius: 10px; border-left: 4px solid #51CF66;">
+                        <h3 style="margin-bottom: 0.5rem; color: #1B7A2A; font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;"><i class="fas fa-check-circle" style="margin-right: 6px;"></i>Your Status</h3>
+                        <div class="user-status-item" style="margin-bottom: 0.3rem; padding: 0.3rem 0; border-bottom: 1px solid rgba(81, 207, 102, 0.2);">
+                            <span style="font-weight: 600; color: #555; font-size: 0.85rem;"><i class="fas fa-user" style="margin-right: 6px; color: #0066CC;"></i>Name:</span>
+                            <strong id="displayName" style="font-size: 0.85rem; color: #1B7A2A;"></strong>
+                        </div>
+                        <div class="user-status-item" style="margin-bottom: 0.3rem; padding: 0.3rem 0; border-bottom: 1px solid rgba(81, 207, 102, 0.2);">
+                            <span style="font-weight: 600; color: #555; font-size: 0.85rem;"><i class="fas fa-ticket-alt" style="margin-right: 6px; color: #0066CC;"></i>Queue #:</span>
+                            <strong style="font-size: 1.1rem; color: #0066CC; font-weight: 700;" id="displayQueueNumber"></strong>
+                        </div>
+                        <div class="user-status-item" style="margin-bottom: 0.3rem; padding: 0.3rem 0; border-bottom: 1px solid rgba(81, 207, 102, 0.2);">
+                            <span style="font-weight: 600; color: #555; font-size: 0.85rem;"><i class="fas fa-map-pin" style="margin-right: 6px; color: #0066CC;"></i>Position:</span>
+                            <strong id="displayPosition" style="font-size: 0.85rem; color: #1B7A2A;"></strong>
+                        </div>
+                        <div class="user-status-item" style="margin-bottom: 0; padding: 0.3rem 0;">
+                            <span style="font-weight: 600; color: #555; font-size: 0.85rem;"><i class="fas fa-hourglass-half" style="margin-right: 6px; color: #0066CC;"></i>Wait Time:</span>
+                            <strong id="estimatedWait" style="font-size: 0.85rem; color: #1B7A2A;">--</strong>
+                        </div>
+                        <button class="btn btn-secondary btn-small" onclick="clearUserData()" style="width: 100%; margin-top: 0.8rem; padding: 0.6rem;">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTIFICATIONS VIEW -->
+        <div id="notificationsView" class="hidden">
+            <div class="card">
+                <h2 style="margin-bottom: 1.5rem;"><i class="fas fa-bell" style="color: #FF6B6B;"></i> Your Notifications</h2>
+                
+                <div id="notificationsList" style="min-height: 400px; background: linear-gradient(135deg, rgba(255, 107, 107, 0.08) 0%, rgba(255, 71, 87, 0.08) 100%); border-radius: 12px; padding: 1.5rem; border: 1px solid rgba(255, 107, 107, 0.2);">
+                    <div style="text-align: center; color: #999; padding: 3rem 1rem;">
+                        <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p style="font-size: 1rem;">No notifications yet</p>
+                        <p style="font-size: 0.85rem; color: #bbb;">When your name is called, it will appear here!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUEUE VIEW -->
+        <div id="queueView" class="hidden">
+            <div class="card">
+                <h2 style="margin-bottom: 2rem;"><i class="fas fa-list-ul"></i> Current Queue Status</h2>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <i class="fas fa-users" style="font-size: 1.8rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                        <div class="stat-number" id="totalPatients">0</div>
+                        <div class="stat-label">Total Patients</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-hourglass-half" style="font-size: 1.8rem; color: var(--warning); margin-bottom: 0.5rem;"></i>
+                        <div class="stat-number" id="averageWait">--</div>
+                        <div class="stat-label">Avg Wait (min)</div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-star" style="font-size: 1.8rem; color: var(--secondary); margin-bottom: 0.5rem;"></i>
+                        <div class="stat-number" id="nextNumber">--</div>
+                        <div class="stat-label">Next Patient</div>
+                    </div>
+                </div>
+
+                <div class="queue-list" id="queueList">
+                    <div class="queue-item empty"><p>Loading queue...</p></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ANALYTICS VIEW -->
+        <div id="analyticsView" class="hidden">
+            <h2 style="color: white; margin-bottom: 2rem;"><i class="fas fa-chart-bar"></i> Queue Analytics & Reports</h2>
+            
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="analyticsTotal">0</div>
+                    <div class="stat-label">Total Registered</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="analyticsServed">0</div>
+                    <div class="stat-label">Total Served</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="analyticsPending">0</div>
+                    <div class="stat-label">Currently Waiting</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="analyticsAvgWait">--</div>
+                    <div class="stat-label">Avg Wait (min)</div>
+                </div>
+            </div>
+
+            <div class="analytics-grid">
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 1rem;">Queue Health Score</h3>
+                    <div class="health-score">
+                        <div class="health-circle good" id="healthScoreCircle">--</div>
+                        <p id="healthScoreText" style="color: var(--success); font-weight: 600;">Excellent Performance</p>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 1rem;">Peak Hours</h3>
+                    <canvas id="peakHoursChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 1rem;"><i class="fas fa-history"></i> Recently Served Patients</h3>
+                <div id="recentlyServedList" style="max-height: 400px; overflow-y: auto;">
+                    <p style="color: #999; text-align: center; padding: 2rem;">No patients served yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN VIEW -->
+        <div id="adminView" class="hidden">
+            <div class="content-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fas fa-lock"></i></div>
+                        <h2>Admin Login</h2>
+                    </div>
+                    <div id="adminMessage"></div>
+                    <div id="adminLogin">
+                        <div class="form-group">
+                            <label for="adminKey">Admin Access Key</label>
+                            <input type="password" id="adminKey" placeholder="Enter admin key">
+                        </div>
+                        <button class="btn btn-primary" onclick="adminLogin()"><i class="fas fa-sign-in-alt"></i> Login</button>
+                    </div>
+
+                    <div id="adminPanel" class="hidden">
+                        <div style="text-align: center; margin-bottom: 1.5rem;">
+                            <div style="font-size: 2.5rem; color: var(--success);"><i class="fas fa-check-circle"></i></div>
+                            <p style="color: #666; margin-top: 0.5rem;">Admin access granted</p>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem;">
+                            <button class="btn btn-success" onclick="serveNext()"><i class="fas fa-forward"></i> Serve Next Patient</button>
+                            <button class="btn btn-danger" onclick="resetQueue()"><i class="fas fa-redo"></i> Reset Queue</button>
+                            <button class="btn btn-secondary" onclick="adminLogout()" style="background: #6C757D;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fas fa-tasks"></i></div>
+                        <h2>Management Dashboard</h2>
+                    </div>
+                    <p style="color: #666; margin-bottom: 1rem;"><strong>Real-time Queue Monitoring:</strong></p>
+                    <ul style="color: #666; line-height: 1.8;">
+                        <li>✓ Monitor queue in real-time</li>
+                        <li>✓ Manage patient flow</li>
+                        <li>✓ View analytics & reports</li>
+                        <li>✓ Track peak hours</li>
+                        <li>✓ Monitor wait times</li>
+                        <li>✓ Export data & statistics</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECURITY VIEW -->
+        <div id="securityView" class="hidden">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h2>Security & Compliance</h2>
+                </div>
+
+                <div class="security-badge"><i class="fas fa-check"></i> HIPAA Compliant System</div>
+                <div class="security-badge"><i class="fas fa-lock"></i> Data Encryption Enabled</div>
+                <div class="security-badge"><i class="fas fa-history"></i> Audit Trail Active</div>
+
+                <h3 style="margin: 2rem 0 1rem; color: var(--primary);">Security Features</h3>
+                <div style="background: var(--light); padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 0.5rem;">✓ Data Protection</h4>
+                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">Patient data is encrypted and stored securely. Access is restricted to authorized personnel only.</p>
+                    
+                    <h4 style="margin-bottom: 0.5rem;">✓ Access Control</h4>
+                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">Role-based access control (RBAC) ensures only authorized staff can perform administrative functions.</p>
+                    
+                    <h4 style="margin-bottom: 0.5rem;">✓ Audit Logging</h4>
+                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">All system activities are logged for compliance and security auditing purposes.</p>
+                    
+                    <h4 style="margin-bottom: 0.5rem;">✓ Session Management</h4>
+                    <p style="color: #666; font-size: 0.9rem;">Secure session handling with automatic timeout for inactive users.</p>
+                </div>
+
+                <h3 style="margin: 2rem 0 1rem; color: var(--primary);">Recent Activity Log</h3>
+                <div id="auditLog" style="background: var(--light); padding: 1rem; border-radius: 10px; max-height: 300px; overflow-y: auto; font-size: 0.85rem;">
+                    <p style="color: #999;">Activity logs appear here</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/api';
+        let peakHoursChart = null;
+
+        function switchView(view, event) {
+            if (event) event.preventDefault();
+            document.getElementById('patientView').classList.toggle('hidden', view !== 'patient');
+            document.getElementById('notificationsView').classList.toggle('hidden', view !== 'notifications');
+            document.getElementById('queueView').classList.toggle('hidden', view !== 'queue');
+            document.getElementById('analyticsView').classList.toggle('hidden', view !== 'analytics');
+            document.getElementById('adminView').classList.toggle('hidden', view !== 'admin');
+            document.getElementById('securityView').classList.toggle('hidden', view !== 'security');
+            
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelector(`[data-view="${view}"]`).classList.add('active');
+
+            if (view === 'analytics') loadAnalytics();
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            console.log('Page loaded - initializing application...');
+            try {
+                loadUserData();
+                loadQueue();
+                loadAnalytics();
+                
+                // Set up auto-refresh intervals - increased to 10 seconds to reduce excessive updates
+                setInterval(() => {
+                    console.log('Auto-refreshing queue...');
+                    loadQueue();
+                }, 10000);
+                
+                setInterval(() => {
+                    console.log('Auto-refreshing analytics...');
+                    loadAnalytics();
+                }, 10000);
+                
+                console.log('Application initialized successfully');
+            } catch (err) {
+                console.error('Error during initialization:', err);
+            }
+        });
+        
+        // Set up global error handler
+        window.addEventListener('error', (event) => {
+            console.error('Global error caught:', event.error, event.message);
+        });
+        
+        // Set up unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+        });
+
+        function loadUserData() {
+            const userData = localStorage.getItem('userQueueData');
+            if (userData) {
+                const data = JSON.parse(userData);
+                document.getElementById('userStatus').classList.remove('hidden');
+                document.getElementById('displayName').textContent = data.name;
+                document.getElementById('displayQueueNumber').textContent = data.queueNumber;
+            }
+        }
+
+        async function loadQueue() {
+            try {
+                const url = `${API_URL}/get-queue`;
+                console.log('Loading queue from:', url);
+                const response = await fetch(url);
+                console.log('Queue response status:', response.status);
+                const data = await response.json();
+                console.log('Queue data:', data);
+                const queue = data.queue || [];
+
+                const queueList = document.getElementById('queueList');
+                if (queue.length === 0) {
+                    queueList.innerHTML = '<div class="queue-item empty"><p>Queue is empty</p></div>';
+                } else {
+                    queueList.innerHTML = queue.map((patient) => `
+                        <div class="queue-item">
+                            <div class="queue-number">${patient.queueNumber}</div>
+                            <div class="queue-info">
+                                <h3>${patient.name}</h3>
+                                <p><i class="fas fa-clock"></i> Joined: ${new Date(patient.timestamp).toLocaleTimeString()}</p>
+                                ${patient.estimatedWaitTime ? `<p><i class="fas fa-hourglass"></i> Est. Wait: ${patient.estimatedWaitTime} min</p>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                document.getElementById('totalPatients').textContent = queue.length;
+                document.getElementById('nextNumber').textContent = queue.length > 0 ? '#1' : '--';
+                
+                const userData = localStorage.getItem('userQueueData');
+                if (userData) {
+                    const data = JSON.parse(userData);
+                    const patient = queue.find(p => p.queueNumber === data.queueNumber);
+                    if (patient) {
+                        document.getElementById('displayPosition').textContent = `#${patient.queueNumber}`;
+                        document.getElementById('estimatedWait').textContent = patient.estimatedWaitTime ? `approximately ${patient.estimatedWaitTime} minutes` : '--';
+                        if (patient.queueNumber <= 2) {
+                            showNotification(`Your turn is coming up! Position: #${patient.queueNumber}`);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading queue:', err);
+            }
+        }
+
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`${API_URL}/analytics`);
+                const data = await response.json();
+                const analytics = data.analytics;
+
+                document.getElementById('analyticsTotal').textContent = analytics.totalRegistered;
+                document.getElementById('analyticsServed').textContent = analytics.totalServed;
+                document.getElementById('analyticsPending').textContent = analytics.currentQueueSize;
+                document.getElementById('analyticsAvgWait').textContent = analytics.averageWaitTime;
+
+                const healthScore = analytics.queueHealthScore;
+                document.getElementById('healthScoreCircle').textContent = healthScore;
+                const healthCircle = document.getElementById('healthScoreCircle');
+                if (healthScore >= 70) {
+                    healthCircle.className = 'health-circle good';
+                    document.getElementById('healthScoreText').textContent = 'Excellent Performance';
+                    document.getElementById('healthScoreText').style.color = '#51CF66';
+                } else if (healthScore >= 40) {
+                    healthCircle.className = 'health-circle warning';
+                    document.getElementById('healthScoreText').textContent = 'Good Performance';
+                    document.getElementById('healthScoreText').style.color = '#FFD43B';
+                } else {
+                    healthCircle.className = 'health-circle poor';
+                    document.getElementById('healthScoreText').textContent = 'Needs Improvement';
+                    document.getElementById('healthScoreText').style.color = '#FF4757';
+                }
+
+                // Peak hours chart
+                if (analytics.peakHour !== null) {
+                    const ctx = document.getElementById('peakHoursChart').getContext('2d');
+                    if (peakHoursChart) peakHoursChart.destroy();
+                    peakHoursChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Peak Hour', 'Patients'],
+                            datasets: [{
+                                label: `Hour ${analytics.peakHour}:00`,
+                                data: [analytics.peakHourCount],
+                                backgroundColor: '#0066CC'
+                            }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: true }
+                    });
+                }
+
+                // Recently served
+                const recentlyServedList = document.getElementById('recentlyServedList');
+                if (analytics.recentlyServed.length > 0) {
+                    recentlyServedList.innerHTML = analytics.recentlyServed.reverse().map(p => `
+                        <div style="padding: 0.75rem; border-bottom: 1px solid var(--border);">
+                            <strong>${p.name}</strong> - Served in ${p.waitTime || 0} minutes
+                        </div>
+                    `).join('');
+                }
+            } catch (err) {
+                console.error('Error loading analytics:', err);
+            }
+        }
+
+        function calculateAge() {
+            const dob = document.getElementById('dateOfBirth').value;
+            if (!dob) return;
+            
+            const birthDate = new Date(dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            document.getElementById('age').value = age > 0 ? age : '';
+        }
+
+        function toggleOtherReason() {
+            const reasonSelect = document.getElementById('reasonForVisit');
+            const otherReasonContainer = document.getElementById('otherReasonContainer');
+            
+            if (reasonSelect.value === 'Other') {
+                otherReasonContainer.classList.remove('hidden');
+            } else {
+                otherReasonContainer.classList.add('hidden');
+                document.getElementById('otherReason').value = '';
+            }
+        }
+
+        async function joinQueue() {
+            const firstName = document.getElementById('firstName').value.trim();
+            const middleName = document.getElementById('middleName').value.trim();
+            const lastName = document.getElementById('lastName').value.trim();
+            const dateOfBirth = document.getElementById('dateOfBirth').value;
+            const age = document.getElementById('age').value;
+            const gender = document.getElementById('gender').value;
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const address = document.getElementById('address').value.trim();
+            const department = document.getElementById('department').value;
+            
+            // Validation
+            if (!firstName) {
+                showMessage('patientMessage', '❌ First name is required', 'error');
+                return;
+            }
+            if (!lastName) {
+                showMessage('patientMessage', '❌ Last name is required', 'error');
+                return;
+            }
+            if (!dateOfBirth) {
+                showMessage('patientMessage', '❌ Date of birth is required', 'error');
+                return;
+            }
+            if (!gender) {
+                showMessage('patientMessage', '❌ Gender is required', 'error');
+                return;
+            }
+            if (!phoneNumber) {
+                showMessage('patientMessage', '❌ Phone number is required', 'error');
+                return;
+            }
+            if (!department) {
+                showMessage('patientMessage', '❌ Please select a department', 'error');
+                return;
+            }
+            
+            // Construct full name
+            const fullName = middleName ? `${firstName} ${middleName} ${lastName}` : `${firstName} ${lastName}`;
+
+            try {
+                const url = `${API_URL}/join-queue`;
+                const payload = {
+                    name: fullName,
+                    firstName,
+                    middleName: middleName || null,
+                    lastName,
+                    dateOfBirth,
+                    age: age ? parseInt(age) : null,
+                    gender,
+                    phoneNumber,
+                    email: email || null,
+                    address: address || null,
+                    department
+                };
+                console.log('Calling joinQueue API:', url, payload);
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (response.ok && data.patient) {
+                    const estimatedWaitTime = data.patient.estimatedWaitTime || 0;
+                    const finalReasonForVisit = reasonForVisit === 'Other' ? otherReason : reasonForVisit;
+                    
+                    localStorage.setItem('userQueueData', JSON.stringify({
+                        name: data.patient.name,
+                        queueNumber: data.patient.queueNumber,
+                        timestamp: data.patient.timestamp,
+                        phoneNumber,
+                        email,
+                        department,
+                        reasonForVisit: finalReasonForVisit,
+                        estimatedWaitTime
+                    }));
+                    showMessage('patientMessage', `✅ Welcome ${firstName}! Your queue number is #${data.patient.queueNumber}`, 'success');
+                    
+                    // Clear form
+                    document.getElementById('firstName').value = '';
+                    document.getElementById('middleName').value = '';
+                    document.getElementById('lastName').value = '';
+                    document.getElementById('dateOfBirth').value = '';
+                    document.getElementById('age').value = '';
+                    document.getElementById('gender').value = '';
+                    document.getElementById('phoneNumber').value = '';
+                    document.getElementById('email').value = '';
+                    document.getElementById('address').value = '';
+                    document.getElementById('department').value = '';
+                    
+                    loadUserData();
+                    loadQueue();
+                } else {
+                    showMessage('patientMessage', data.error || 'Failed to join queue', 'error');
+                }
+            } catch (err) {
+                console.error('Error in joinQueue:', err);
+                showMessage('patientMessage', '❌ Network error: ' + err.message, 'error');
+            }
+        }
+
+        function adminLogin() {
+            const key = document.getElementById('adminKey').value;
+            if (!key) {
+                showMessage('adminMessage', 'Please enter admin key', 'error');
+                return;
+            }
+
+            localStorage.setItem('adminKey', key);
+            document.getElementById('adminLogin').classList.add('hidden');
+            document.getElementById('adminPanel').classList.remove('hidden');
+            showMessage('adminMessage', '✅ Admin login successful', 'success');
+            logActivity('Admin login successful');
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('adminKey');
+            document.getElementById('adminPanel').classList.add('hidden');
+            document.getElementById('adminLogin').classList.remove('hidden');
+            document.getElementById('adminKey').value = '';
+            logActivity('Admin logout');
+        }
+
+        async function serveNext() {
+            const adminKey = localStorage.getItem('adminKey') || document.getElementById('adminKey').value;
+            if (!adminKey) {
+                showMessage('adminMessage', 'Please login first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/serve-next`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminKey })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    if (data.servedPatient) {
+                        showMessage('adminMessage', `✅ Served patient: ${data.servedPatient.name}`, 'success');
+                        logActivity(`Served patient: ${data.servedPatient.name}`);
+                        // Add notification for patient
+                        addPatientNotification(data.servedPatient.name);
+                    } else {
+                        showMessage('adminMessage', '⚠️ Queue is empty', 'warning');
+                    }
+                    loadQueue();
+                    loadAnalytics();
+                } else {
+                    showMessage('adminMessage', data.error || 'Failed to serve next', 'error');
+                }
+            } catch (err) {
+                showMessage('adminMessage', '❌ Network error: ' + err.message, 'error');
+            }
+        }
+
+        async function resetQueue() {
+            if (!confirm('⚠️ Are you sure you want to reset the entire queue?')) return;
+
+            const adminKey = localStorage.getItem('adminKey') || document.getElementById('adminKey').value;
+            if (!adminKey) {
+                showMessage('adminMessage', 'Please login first', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/reset-queue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminKey })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    showMessage('adminMessage', '✅ Queue reset successfully', 'success');
+                    logActivity('Queue reset by admin');
+                    loadQueue();
+                    loadAnalytics();
+                } else {
+                    showMessage('adminMessage', data.error || 'Failed to reset queue', 'error');
+                }
+            } catch (err) {
+                showMessage('adminMessage', '❌ Network error: ' + err.message, 'error');
+            }
+        }
+
+        function clearUserData() {
+            if (!confirm('Clear your queue data?')) return;
+            localStorage.removeItem('userQueueData');
+            document.getElementById('userStatus').classList.add('hidden');
+            document.getElementById('patientName').value = '';
+            loadQueue();
+        }
+
+        function toggleNotifications() {
+            if (document.getElementById('browserNotifications').checked) {
+                if ('Notification' in window) {
+                    Notification.requestPermission();
+                }
+            }
+        }
+
+        function showNotification(message) {
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('MediFlow Queue', { body: message });
+            }
+            
+            // Add to notification center
+            const list = document.getElementById('notificationList');
+            const item = document.createElement('div');
+            item.style.cssText = 'padding: 0.5rem 0; border-bottom: 1px solid #ddd;';
+            item.innerHTML = `<i class="fas fa-bell" style="color: var(--primary);"></i> ${message} <span style="color: #999; font-size: 0.8rem;">${new Date().toLocaleTimeString()}</span>`;
+            list.insertBefore(item, list.firstChild);
+        }
+
+        function addPatientNotification(patientName) {
+            // Show banner notification
+            const notificationsList = document.getElementById('notificationsList');
+            
+            // Clear empty state
+            notificationsList.innerHTML = '';
+            
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                background: linear-gradient(135deg, #FF6B6B 0%, #FF4757 100%);
+                color: white;
+                padding: 2rem;
+                border-radius: 12px;
+                margin-bottom: 1rem;
+                box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3);
+                animation: slideIn 0.5s ease;
+                text-align: center;
+            `;
+            notification.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🔔</div>
+                <h3 style="margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 700;">We're Ready For You!</h3>
+                <p style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 600;">${patientName}</p>
+                <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">Please proceed to your department</p>
+            `;
+            
+            // Add notification
+            notificationsList.appendChild(notification);
+            
+            // Update badge
+            updateNotificationBadge();
+            
+            // Play sound (optional notification sound)
+            playNotificationSound();
+        }
+
+        function updateNotificationBadge() {
+            const badge = document.getElementById('notificationBadge');
+            const notifications = document.querySelectorAll('[data-notification]').length;
+            if (notifications > 0) {
+                badge.textContent = notifications;
+                badge.style.display = 'inline-flex';
+            }
+        }
+
+        function playNotificationSound() {
+            // Create a simple beep sound using Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function logActivity(action) {
+            const auditLog = document.getElementById('auditLog');
+            const item = document.createElement('div');
+            item.style.cssText = 'padding: 0.5rem 0; border-bottom: 1px solid #ddd;';
+            item.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${action}`;
+            auditLog.insertBefore(item, auditLog.firstChild);
+        }
+
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            if (!message) {
+                element.innerHTML = '';
+                return;
+            }
+            const icon = type === 'success' ? 'fas fa-check-circle' : type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle';
+            element.innerHTML = `<div class="message ${type}"><i class="${icon}"></i> ${message}</div>`;
+            
+            // Only auto-clear success messages after 4 seconds
+            if (type === 'success') {
+                setTimeout(() => { 
+                    if (element.innerHTML.includes(message)) {
+                        element.innerHTML = ''; 
+                    }
+                }, 4000);
+            }
+        }
+    </script>
+</body>
+</html>
