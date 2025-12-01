@@ -1,0 +1,5 @@
+{
+  "buildCommand": "npm run build",
+  "framework": "express",
+  "outputDirectory": "backend/public"
+}
